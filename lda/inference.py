@@ -50,8 +50,8 @@ class LDA():
         self.inferenceTime = end - start
 
         if self.verbose:
-            print("LDA => Fitting took: "
-                  + "{:10.4f}".format(self.inferenceTime) + "s")
+            print("LDA => Fitting took: " +
+                  "{:10.4f}".format(self.inferenceTime) + "s")
 
 
 if __name__ == '__main__':
