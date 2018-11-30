@@ -52,7 +52,8 @@ class DataSet:
         self.loadTime = end - start
 
         if verbose:
-            print("Dataset => Parsing " + str(self.numOfDocuments()) + " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
+            print("Dataset => Parsing " + str(self.numOfDocuments())
+                  + " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
 
         if verbose:
             print("Dataset => Building Matrix")
@@ -63,7 +64,8 @@ class DataSet:
         self.buildMatrixTime = end - start
 
         if verbose:
-            print("Dataset => Building " + str(self.matrixFormat) + " with shape " + str(self.matrix.shape) +  " took: " + "{:10.4f}".format(self.buildMatrixTime) + "s")
+            print("Dataset => Building " + str(self.matrixFormat) + " " +
+                  str(self.matrix.shape) + " took: " + "{:10.4f}".format(self.buildMatrixTime) + "s")
 
         if verbose:
             print("Dataset => Constructed")
@@ -94,7 +96,7 @@ class DataSet:
         # Extract text-attribute of pages in Wikipedia-namespace '0'
         texts = (
             page.find('root:revision', xmlNamespaces)
-                .find('root:text', xmlNamespaces).text
+            .find('root:text', xmlNamespaces).text
             for page in root.findall('root:page', xmlNamespaces)
             if 0 == int(page.find('root:ns', xmlNamespaces).text)
         )
