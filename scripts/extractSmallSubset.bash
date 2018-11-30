@@ -3,8 +3,7 @@
 cd dataset
 
 #Choose how many pages to extract
-n=100000
-
+n=100
 #Get line number of n-th occurence of the closing tag "</page>"
 lineNum=$(
   grep -n  "</page>" simplewiki-20181120-pages-meta-current.xml | \
