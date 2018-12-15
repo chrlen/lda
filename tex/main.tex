@@ -20,7 +20,7 @@ First we have to choose a text corpus to estimate the parameters of the LDA-mode
 For the purpose of speeding up the development process we will perform our operations on an even smaller subset of only 5 articles, to avoid long loading times on every run. We split some articles of the downloaded file into a smaller file with the script in section \ref{extract}.
 
 \subsection{Class : Dataset}
-We concentrate all operations regarding the preprocessing of the data in class named Dataset, which can be examined in section  \ref{class:dataset}.
+We concentrate all operations regarding the preprocessing of the data in class named Dataset, which can be examined in section  \ref{class:dataset}. Our goal here is to process all articles and end up with a matrix of wordcounts, each row representing an article and each column representing a word. Therefore we have to establish a common dictionary containing all occurring words from all
 
 \subsection{Class : LDA}
 
