@@ -1,11 +1,12 @@
 from lda.dataset import DataSet
+from tqdm import tqdm
 import time
 
 
 class LDA():
     def __init__(self,
                  maxit=1000,
-                 verbose=True
+                 verbose=False
                  ):
         self.verbose = verbose
         self.maxit = maxit
@@ -17,24 +18,27 @@ class LDA():
 
     def expectation(self):
         """ For each document, find the optimizing values of the variational parameters """
-        print("Expect")
+        # print("Expect")
 
     def maximization(self):
         """ Maximize the resulting lower bound on the log likelihood """
-        print("Maximize")
+        # print("Maximize")
 
-    def numOfDocuments():
-        return this.dataset.numOfDocuments()
+    def numOfDocuments(self):
+        return self.dataset.numOfDocuments()
 
-    def num
+    def numOf(self):
+        return self.dataset
 
     def fit(self, dataset):
+        self.dataset = dataset
+        self.multinomials = 1
         if self.verbose:
             print("LDA => fitting to Dataset: " + str(dataset.matrix.shape))
 
         start = time.perf_counter()
 
-        while not self.converged:
+        for iteration in tqdm(range(self.maxit), desc='EM: '):
             self.expectation()
             self.maximization()
             self.iterations += 1
@@ -57,4 +61,4 @@ class LDA():
 if __name__ == '__main__':
     dataset = DataSet()
     model = LDA()
-    model.fit(dataset)
+    # model.fit(dataset)
