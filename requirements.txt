@@ -2,4 +2,5 @@ pandas
 scipy
 gensim
 pattern
+tqdm
 
