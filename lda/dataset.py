@@ -6,6 +6,7 @@ import scipy as sp
 import numpy as np
 from functools import partial
 import time
+from tqdm import tqdm
 
 
 def preprocessText(page, onlyOverview=True):
@@ -32,7 +33,7 @@ class DataSet:
     def __init__(self,
                  path='../dataset/small.xml',
                  sparse=True,
-                 verbose=True,
+                 verbose=False,
                  matrixFormat='sparse',
                  matrixDType=sp.int8):
 
@@ -83,8 +84,10 @@ class DataSet:
                                        matrixDType=self.matrixDType)
 
         with mp.Pool(mp.cpu_count() - 1) as p:
-            counts = p.map(self.dictionary.doc2bow, self.documents)
-            rows = p.map(partialTuples2Matrix, counts)
+            counts = p.map(self.dictionary.doc2bow, tqdm(
+                self.documents, desc='Counting words'))
+            rows = p.map(partialTuples2Matrix, tqdm(
+                counts, desc='Generating sparse document vectors'))
 
         self.matrix = sps.vstack(rows)
 
@@ -94,16 +97,19 @@ class DataSet:
         xmlNamespaces = {'root': 'http://www.mediawiki.org/xml/export-0.10/'}
 
         # Extract text-attribute of pages in Wikipedia-namespace '0'
-        texts = (
+        texts = [
             page.find('root:revision', xmlNamespaces)
             .find('root:text', xmlNamespaces).text
             for page in root.findall('root:page', xmlNamespaces)
             if 0 == int(page.find('root:ns', xmlNamespaces).text)
-        )
+        ]
+        if self.verbose:
+            print('Parse xml')
 
         # Parallel preprocessing of pages
         with mp.Pool(mp.cpu_count() - 1) as p:
-            self.documents = p.map(preprocessText, texts)
+            self.documents = p.map(preprocessText, tqdm(
+                texts, desc='Preprocessing text'))
 
         # Build gensim dictionary
         self.dictionary = gsm.corpora.dictionary.Dictionary(self.documents)
