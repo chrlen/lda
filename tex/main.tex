@@ -1,0 +1,47 @@
+\documentclass[15pt,landscape,twopage]{article}
+\input{preamble}
+\input{formulas}
+
+\geometry{top=20mm, left=20mm, right=10mm, bottom=15mm}
+
+\pagestyle{fancy}
+\lhead{Christian Lengert 153767}
+\rhead{\today}
+\chead{Graphical Models Lab : Latent Dirichlet Allocation (LDA)}
+\rfoot{Page \thepage}
+
+\begin{document}
+\section{The model of Latent Dirichlet Allocation}
+The model of Latent Dirichlet Allocation is a
+\section{Imlementation}
+\subsection{Preparation}
+First we have to choose a text corpus to estimate the parameters of the LDA-model from. For this we use a dump from the simple english wikipedia \cite{simplewi84:online}, namely the version named 'All pages, current versions only'.
+
+For the purpose of speeding up the development process we will perform our operations on an even smaller subset of only 5 articles, to avoid long loading times on every run. We split some articles of the downloaded file into a smaller file with the script in section \ref{extract}.
+
+\subsection{Class : Dataset}
+We concentrate all operations regarding the preprocessing of the data in class named Dataset, which can be examined in section  \ref{class:dataset}.
+
+\subsection{Class : LDA}
+
+\section{Applying LDA}
+\newpage
+
+\bibliography{refs}
+\bibliographystyle{IEEEtran}
+
+\newpage
+
+\section{Appendix}
+\subsection{Extract subset} \label{extract}
+\lstinputlisting[language=bash]{\scriptpath/extractSmallSubset.bash}
+
+\subsection{Class : Dataset} \label{class:dataset}
+\lstinputlisting[language=python]{\codepath/dataset.py}
+
+\subsection{Class : LDA} \label{class:lda}
+\lstinputlisting[language=python]{\codepath/inference.py}
+
+
+
+\end{document}
