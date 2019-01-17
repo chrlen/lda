@@ -12,7 +12,75 @@
 
 \begin{document}
 \section{The model of Latent Dirichlet Allocation}
-The model of Latent Dirichlet Allocation is a
+The model of Latent Dirichlet Allocation is a generative probabilistic model for collections of discrete data \cite{Blei2003}. Therefore it qualifies to be used for the explorative analysis of text corpora.
+\subsection{Structure}
+
+\begin{tikzpicture}[shorten >=1pt,node distance=1.5cm,auto]
+ \node[state] (q_11)  {$q_{11}$};
+ \node[state] (q_10) [below = of q_11] {$q_{10}$};
+ 
+ \node[state] (q_21) [right= of q_11] {$q_{21}$};raving
+ \node[state] (q_20) [right= of q_10] {$q_{20}$};
+ 
+ \node[state] (q_31) [right= of q_21] {$q_{31}$};
+ \node[state] (q_30) [right= of q_20] {$q_{30}$};
+ 
+ \node[state] (q_41) [right= of q_31] {$q_{41}$};
+ \node[state] (q_40) [right= of q_30] {$q_{40}$};
+ 
+ \node[state] (q_51) [right= of q_41] {$q_{51}$};
+ \node[state] (q_50) [right= of q_40] {$q_{50}$};
+ 
+ \node[state] (q_61) [right= of q_51] {$q_{61}$};
+ \node[state] (q_60) [right= of q_50] {$q_{60}$};
+ 
+ \node[state] (q_71) [right= of q_61] {$q_{71}$};
+ \node[state] (q_70) [right= of q_60] {$q_{70}$};
+ 
+ \node[state] (q_81) [right= of q_71] {$q_{81}$};
+ \node[state,accepting,initial below] (q_80) [right= of q_70] {$q_{80}$};
+ \path[->]
+ 
+ (q_11) edge  node {1} (q_20)
+ edge  node [swap] {0} (q_21)
+ (q_21) edge  node {1} (q_30)
+ edge  node [swap] {0} (q_31)
+ (q_31) edge  node {1} (q_40)
+ edge  node [swap] {0} (q_41)
+ (q_41) edge  node {1} (q_50)
+ edge  node [swap] {0} (q_51)
+ (q_51) edge  node {1} (q_60)
+ edge  node [swap] {0} (q_61)
+ (q_61) edge  node {1} (q_70)
+ edge  node [swap] {0} (q_71)
+ (q_71) edge  node {1} (q_80)
+ edge  node [swap] {0} (q_81)
+ 
+ (q_10) edge  node {1} (q_21)
+ edge  node [above] {0} (q_20)
+ (q_20) edge  node {1} (q_31)
+ edge  node [above] {0} (q_30)
+ (q_30) edge  node {1} (q_41)
+ edge  node [above] {0} (q_40)
+ (q_40) edge  node {1} (q_51)
+ edge  node [above] {0} (q_50)
+ (q_50) edge  node {1} (q_61)
+ edge  node [above] {0} (q_60)
+ (q_60) edge  node {1} (q_71)
+ edge  node [above] {0} (q_70)
+ (q_70) edge  node {1} (q_81)
+ edge  node [above] {0} (q_80)
+ 
+ (q_80) 	edge [out=30,in=15]  node [above] {1} (q_11)
+ edge [bend left=25]  node [below] {0} (q_10)
+ (q_81) 	edge [loop above]  node {1} (q_81)
+ edge [loop right]  node {0} (q_81)
+ ;
+\end{tikzpicture}
+
+\subsection{Variational Inference}
+
+
 \section{Imlementation}
 \subsection{Preparation}
 First we have to choose a text corpus to estimate the parameters of the LDA-model from. For this we use a dump from the simple english wikipedia \cite{simplewi84:online}, namely the version named 'All pages, current versions only'.
