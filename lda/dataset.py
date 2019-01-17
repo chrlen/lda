@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 def preprocessText(page, onlyOverview=True):
     # Shortcut to get it running
+    # return page
     return gsm.parsing.preprocessing.preprocess_string(page)
 
 
@@ -36,7 +37,7 @@ class DataSet:
                  verbose=False,
                  matrixFormat='sparse',
                  matrixDType=sp.int8):
-
+        self.verbose = verbose
         self.path = path
         if (matrixFormat == 'sparse'):
             self.matrixFormat = sps.lil_matrix
@@ -53,8 +54,8 @@ class DataSet:
         self.loadTime = end - start
 
         if verbose:
-            print("Dataset => Parsing " + str(self.numOfDocuments())
-                  + " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
+            print("Dataset => Parsing " + str(self.numOfDocuments()) +
+                  " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
 
         if verbose:
             print("Dataset => Building Matrix")
@@ -65,8 +66,8 @@ class DataSet:
         self.buildMatrixTime = end - start
 
         if verbose:
-            print("Dataset => Building " + str(self.matrixFormat) + " " +
-                  str(self.matrix.shape) + " took: " + "{:10.4f}".format(self.buildMatrixTime) + "s")
+            print("Dataset => Building " + str(self.matrixFormat) + " "
+                  + str(self.matrix.shape) + " took: " + "{:10.4f}".format(self.buildMatrixTime) + "s")
 
         if verbose:
             print("Dataset => Constructed")
@@ -103,6 +104,7 @@ class DataSet:
             for page in root.findall('root:page', xmlNamespaces)
             if 0 == int(page.find('root:ns', xmlNamespaces).text)
         ]
+
         if self.verbose:
             print('Parse xml')
 
