@@ -34,7 +34,7 @@ class DataSet:
     def __init__(self,
                  path='../dataset/small.xml',
                  sparse=True,
-                 verbose=False,
+                 verbose=True,
                  matrixFormat='sparse',
                  matrixDType=sp.int8):
         self.verbose = verbose
@@ -54,8 +54,8 @@ class DataSet:
         self.loadTime = end - start
 
         if verbose:
-            print("Dataset => Parsing " + str(self.numOfDocuments()) +
-                  " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
+            print("Dataset => Parsing " + str(self.numOfDocuments())
+                  + " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
 
         if verbose:
             print("Dataset => Building Matrix")
@@ -66,8 +66,8 @@ class DataSet:
         self.buildMatrixTime = end - start
 
         if verbose:
-            print("Dataset => Building " + str(self.matrixFormat) + " "
-                  + str(self.matrix.shape) + " took: " + "{:10.4f}".format(self.buildMatrixTime) + "s")
+            print("Dataset => Building " + str(self.matrixFormat) + " " +
+                  str(self.matrix.shape) + " took: " + "{:10.4f}".format(self.buildMatrixTime) + "s")
 
         if verbose:
             print("Dataset => Constructed")
