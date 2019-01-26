@@ -14,7 +14,7 @@ import threading as th
 
 class LDA():
     def __init__(self,
-                 maxit=1000,
+                 maxit=3,
                  verbose=True,
                  readOutIterations=10,
                  estimateHyperparameters=True,
@@ -46,67 +46,69 @@ class LDA():
         if self.alpha == None:
             self.alpha = np.repeat(50 / nTopics, nTopics)
         if self.beta == None:
-            self.beta = np.repeat(0.01, nTopics)
+            self.beta = np.repeat(0.01, dataset.dictionarySize())
 
         if self.verbose:
             print("LDA-Model => fitting to dataset")
         start = time.perf_counter()
 
-       # M: Number of documents
-       # K: Number of topics
-       # V: number of Terms
+        # M: Number of documents
+        # K: Number of topics
+        # V: number of Terms
 
-       # z_mn : W
+        # z_mn : W
         self.topicAssociations_z = hlp.randomMultimatrix(
             dataset.numOfDocuments(),
-            dataset.dictionarySize(),
+            np.max(list(map(len, dataset.documents))),
             nTopics)
 
-       # M x K
+        # M x K
         self.documentTopic_count_n_mk = np.zeros(
             (dataset.numOfDocuments(),
              nTopics)
         )
 
-  # K x v
+        # K x v
         self.topicTerm_count_n_kt = np.zeros(
             (nTopics,
              dataset.dictionarySize())
         )
 
-        for document in range(dataset.numOfDocuments()):
-            for term in range(dataset.dictionarySize()):
-                topic = self.topicAssociations_z[document, term]
-                self.documentTopic_count_n_mk[document, topic] += 1
-                self.topicTerm_count_n_kt[topic, term] += 1
+        for documentIndex in range(dataset.numOfDocuments()):
+            document = dataset.documents[documentIndex]
+            for wordIndex in range(len(document)):
+                word = document[wordIndex]
+                termIndex = dataset.dictionary.token2id[word]
+                topicIndex = self.topicAssociations_z[documentIndex, wordIndex]
+                self.documentTopic_count_n_mk[documentIndex, topicIndex] += 1
+                self.topicTerm_count_n_kt[topicIndex, termIndex] += 1
 
-    # M
+        # M
         self.documentTopic_sum_n_m = np.sum(
             self.documentTopic_count_n_mk, axis=1)
-        assert(
-            len(self.documentTopic_sum_n_m.shape) == 1
+        assert (
+                len(self.documentTopic_sum_n_m.shape) == 1
         )
-        assert(
-            self.documentTopic_sum_n_m.shape[0] == dataset.numOfDocuments()
+        assert (
+                self.documentTopic_sum_n_m.shape[0] == dataset.numOfDocuments()
         )
 
         # K
         self.topicTerm_sum_n_k = np.sum(self.topicTerm_count_n_kt, axis=1)
-        assert(
-            len(self.topicTerm_sum_n_k.shape) == 1
+        assert (
+                len(self.topicTerm_sum_n_k.shape) == 1
         )
-        assert(
-            self.topicTerm_sum_n_k.shape[0] == nTopics
+        assert (
+                self.topicTerm_sum_n_k.shape[0] == nTopics
         )
-
         end = time.perf_counter()
         self.initializazionTime = end - start
         if self.verbose:
-            print("LDA => Initialization took: "
-                  + "{:10.4f}".format(self.initializazionTime) + "s")
+            print("LDA => Initialization took: {:10.4f}".format(
+                self.initializazionTime) + "s")
 
-# -------------------------------- Burn-In phase --------------------------
-# -------------------------------- Sampling --------------------------------
+        # -------------------------------- Burn-In phase --------------------------
+        # -------------------------------- Sampling --------------------------------
         if self.verbose:
             print("LDA => fitting to Dataset: " + str(dataset.matrix.shape))
 
@@ -118,31 +120,43 @@ class LDA():
                 document = dataset.documents[documentIndex]
                 for wordIndex in range(len(document)):
                     word = document[wordIndex]
-                    wordId = dataset.dictionary.token2id[word]
-                    previousTopicIndex = self.topicAssociations_z[documentIndex, wordId]
+                    termIndex = dataset.dictionary.token2id[word]
+                    previousTopicIndex = self.topicAssociations_z[documentIndex, wordIndex]
 
                     # For the current assignment of k to a term t for word w_{m,n}
                     self.documentTopic_count_n_mk[documentIndex,
                                                   previousTopicIndex] -= 1
                     self.documentTopic_sum_n_m[documentIndex] -= 1
-                    self.topicTerm_count_n_kt[previousTopicIndex, wordId] -= 1
+                    self.topicTerm_count_n_kt[previousTopicIndex, termIndex] -= 1
                     self.topicTerm_sum_n_k[previousTopicIndex] -= 1
+
                     # multinomial sampling acc. to Eq. 78 (decrements from previous step)
 
-                    newTopicIndex = 0
+                    params = np.zeros(self.nTopics)
+                    for topicIndex in range(self.nTopics):
+                        n = self.topicTerm_count_n_kt[topicIndex, termIndex] + self.beta[termIndex]
+                        d = self.topicTerm_sum_n_k[topicIndex] + self.beta[termIndex]
+                        f = self.documentTopic_count_n_mk[documentIndex, topicIndex] + self.alpha[topicIndex]
+                        params[topicIndex] = (n / d) * f
+
+                    #Scale
+                    #params = np.abs(params)
+                    params = np.asarray(params).astype('float64')
+                    params = params / np.sum(params)
+                    newTopicIndex = hlp.getIndex(spst.multinomial(1, params).rvs()[0])
 
                     self.topicAssociations_z[documentIndex,
-                                             wordId] = newTopicIndex
+                                             wordIndex] = newTopicIndex
                     # For new assignments of z_{m,n} to the term t for word w_{m,n}
                     self.documentTopic_count_n_mk[documentIndex,
                                                   newTopicIndex] += 1
                     self.documentTopic_sum_n_m[documentIndex] += 1
-                    self.topicTerm_count_n_kt[newTopicIndex, wordId] += 1
+                    self.topicTerm_count_n_kt[newTopicIndex, termIndex] += 1
                     self.topicTerm_sum_n_k[newTopicIndex] += 1
 
             self.iterations += 1
-            # if self.verbose:
-            #    print("LDA.fit() => iteration: " + str(self.iterations))
+            if self.verbose:
+                print("LDA.fit() => iteration: " + str(self.iterations))
 
             if self.converged and self.lastReadOut > self.readOutIterations:
                 print("reading")

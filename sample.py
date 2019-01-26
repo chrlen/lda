@@ -9,5 +9,5 @@ path = 'dataset/small.xml'
 #path = 'dataset/simplewiki-20181120-pages-meta-current.xml'
 
 dataset = DataSet(path=path)
-model = LDA()
+model = LDA(maxit=10)
 model.fit(dataset)
