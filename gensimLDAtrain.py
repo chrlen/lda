@@ -1,23 +1,21 @@
 from gensim.models.ldamulticore import LdaMulticore
-from lda.dataset import DataSet
 import multiprocessing as mp
 
-import scipy.stats as spst
-import numpy as np
-import numpy.random as npr
-
 from gensim.test.utils import datapath
+import pickle
 
 #path = 'dataset/small.xml'
 cores = mp.cpu_count() - 1
-path = 'dataset/simplewiki-20181120-pages-meta-current.xml'
+datasetPath = 'dataset/large/'
+modelPath = "models/largeModel"
 
-dataset = DataSet(path=path)
+dictionary = pickle.load(open(datasetPath + "dictionary.pickle", 'rb'))
+corpus = pickle.load(open(datasetPath + "corpus.pickle", 'rb'))
 
-lda = LdaMulticore(corpus=dataset.documents,
-                   num_topics=20,
-                   id2word=dataset.dictionary,
+lda = LdaMulticore(corpus=corpus,
+                   num_topics=30,
+                   id2word=dictionary,
                    workers=cores)
 
-temp_file = datapath("/home/me/Desktop/models/largeModel")
+temp_file = datapath(modelPath)
 lda.save(temp_file)
