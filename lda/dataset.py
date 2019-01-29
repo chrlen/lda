@@ -120,6 +120,15 @@ class DataSet:
         dictionary = gsm.corpora.dictionary.Dictionary(documents)
         return [documents, documentsLengths, dictionary]
 
+    def saveToDir(self, savePath):
+        with open(savePath + 'corpus.pickle', 'wb') as handle:
+            pickle.dump(self.documents, handle,
+                        protocol=pickle.HIGHEST_PROTOCOL)
+
+        with open(savePath + 'dictionary.pickle', 'wb') as handle:
+            pickle.dump(self.dictionary, handle,
+                        protocol=pickle.HIGHEST_PROTOCOL)
+
 
 if __name__ == '__main__':
     dataset = DataSet()
