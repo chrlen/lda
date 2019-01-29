@@ -10,6 +10,7 @@ import lda.helpers as hlp
 import multiprocessing as mp
 import itertools as it
 import threading as th
+import json
 
 
 class LDA():
@@ -36,8 +37,13 @@ class LDA():
         if self.verbose:
             print("LDA-Model => constructed")
 
-    def numOf(self):
-        return self.dataset
+        def saveJson(self, file):
+        saveDict = {'topic_term_dists': self.phi,
+                    'doc_topic_dists': self.topicTerm_count_n_kt,
+                    'doc_lengths': dataset.documentLengths(),
+                    'vocab': dataset,
+                    'term_frequency': data_input['term.frequency']}
+        jsonString = json.dumps(my_dictionary)
 
     def fit(self, dataset,
             nTopics=5):
@@ -87,19 +93,19 @@ class LDA():
         self.documentTopic_sum_n_m = np.sum(
             self.documentTopic_count_n_mk, axis=1)
         assert (
-                len(self.documentTopic_sum_n_m.shape) == 1
+            len(self.documentTopic_sum_n_m.shape) == 1
         )
         assert (
-                self.documentTopic_sum_n_m.shape[0] == dataset.numOfDocuments()
+            self.documentTopic_sum_n_m.shape[0] == dataset.numOfDocuments()
         )
 
         # K
         self.topicTerm_sum_n_k = np.sum(self.topicTerm_count_n_kt, axis=1)
         assert (
-                len(self.topicTerm_sum_n_k.shape) == 1
+            len(self.topicTerm_sum_n_k.shape) == 1
         )
         assert (
-                self.topicTerm_sum_n_k.shape[0] == nTopics
+            self.topicTerm_sum_n_k.shape[0] == nTopics
         )
         end = time.perf_counter()
         self.initializazionTime = end - start
@@ -107,15 +113,13 @@ class LDA():
             print("LDA => Initialization took: {:10.4f}".format(
                 self.initializazionTime) + "s")
 
-        # -------------------------------- Burn-In phase --------------------------
         # -------------------------------- Sampling --------------------------------
         if self.verbose:
-            print("LDA => fitting to Dataset: " + str(dataset.matrix.shape))
+            print("LDA => fitting to Dataset")
 
         start = time.perf_counter()
 
-        for iteration in tqdm(range(self.maxit), desc='EM: '):
-
+        for iteration in tqdm(range(self.maxit), desc='Gibb's: '):
             for documentIndex in range(len(dataset.documents)):
                 document = dataset.documents[documentIndex]
                 for wordIndex in range(len(document)):
@@ -127,23 +131,28 @@ class LDA():
                     self.documentTopic_count_n_mk[documentIndex,
                                                   previousTopicIndex] -= 1
                     self.documentTopic_sum_n_m[documentIndex] -= 1
-                    self.topicTerm_count_n_kt[previousTopicIndex, termIndex] -= 1
+                    self.topicTerm_count_n_kt[previousTopicIndex,
+                                              termIndex] -= 1
                     self.topicTerm_sum_n_k[previousTopicIndex] -= 1
 
                     # multinomial sampling acc. to Eq. 78 (decrements from previous step)
 
                     params = np.zeros(self.nTopics)
                     for topicIndex in range(self.nTopics):
-                        n = self.topicTerm_count_n_kt[topicIndex, termIndex] + self.beta[termIndex]
-                        d = self.topicTerm_sum_n_k[topicIndex] + self.beta[termIndex]
-                        f = self.documentTopic_count_n_mk[documentIndex, topicIndex] + self.alpha[topicIndex]
+                        n = self.topicTerm_count_n_kt[topicIndex,
+                                                      termIndex] + self.beta[termIndex]
+                        d = self.topicTerm_sum_n_k[topicIndex] + \
+                            self.beta[termIndex]
+                        f = self.documentTopic_count_n_mk[documentIndex,
+                                                          topicIndex] + self.alpha[topicIndex]
                         params[topicIndex] = (n / d) * f
 
-                    #Scale
+                    # Scale
                     #params = np.abs(params)
                     params = np.asarray(params).astype('float64')
                     params = params / np.sum(params)
-                    newTopicIndex = hlp.getIndex(spst.multinomial(1, params).rvs()[0])
+                    newTopicIndex = hlp.getIndex(
+                        spst.multinomial(1, params).rvs()[0])
 
                     self.topicAssociations_z[documentIndex,
                                              wordIndex] = newTopicIndex
@@ -155,8 +164,8 @@ class LDA():
                     self.topicTerm_sum_n_k[newTopicIndex] += 1
 
             self.iterations += 1
-            if self.verbose:
-                print("LDA.fit() => iteration: " + str(self.iterations))
+            # if self.verbose:
+            #    print("LDA.fit() => iteration: " + str(self.iterations))
 
             if self.converged and self.lastReadOut > self.readOutIterations:
                 print("reading")
