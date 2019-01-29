@@ -10,10 +10,10 @@ import pickle
 
 from gensim.test.utils import datapath
 
-path = 'dataset/small.xml'
+#path = 'dataset/small.xml'
 cores = mp.cpu_count() - 1
 path = 'dataset/simplewiki-20181120-pages-meta-current.xml'
-#savePath = "/home/me/Desktop/simpleWiki/"
+savePath = "dataset/large/"
 
 dataset = DataSet(path=path)
 
