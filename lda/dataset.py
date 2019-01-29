@@ -54,8 +54,8 @@ class DataSet:
         self.loadTime = end - start
 
         if verbose:
-            print("Dataset => Parsing " + str(len(documents)) +
-                  " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
+            print("Dataset => Parsing " + str(len(documents))
+                  + " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
 
         if verbose:
             print("Dataset => Building Matrix")
@@ -66,8 +66,8 @@ class DataSet:
         self.buildMatrixTime = end - start
 
         if verbose:
-            print("Dataset => Building took: " +
-                  "{:10.4f}".format(self.buildMatrixTime) + "s")
+            print("Dataset => Building took: "
+                  + "{:10.4f}".format(self.buildMatrixTime) + "s")
 
         if verbose:
             print("Dataset => Constructed")
