@@ -40,7 +40,7 @@ class DataSet:
         self.verbose = verbose
         self.path = path
         if (matrixFormat == 'sparse'):
-            self.matrixFormat = sps.lil_matrix
+            self.matrixFormat = sps.csc_matrix
         else:
             self.matrixFormat = np.matrix
         self.matrixDType = matrixDType
@@ -49,25 +49,25 @@ class DataSet:
             print("Dataset => Loading File")
 
         start = time.perf_counter()
-        self.loadXMLFile()
+        documents, self.documentLengths, self.dictionary = self.loadXMLFile()
         end = time.perf_counter()
         self.loadTime = end - start
 
         if verbose:
-            print("Dataset => Parsing " + str(self.numOfDocuments())
-                  + " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
+            print("Dataset => Parsing " + str(len(documents)) +
+                  " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
 
         if verbose:
             print("Dataset => Building Matrix")
 
         start = time.perf_counter()
-        self.buildMatrix()
+        self.documents = self.buildMatrix(documents, self.dictionary)
         end = time.perf_counter()
         self.buildMatrixTime = end - start
 
         if verbose:
-            print("Dataset => Building " + str(self.matrixFormat) + " " +
-                  str(self.matrix.shape) + " took: " + "{:10.4f}".format(self.buildMatrixTime) + "s")
+            print("Dataset => Building took: " +
+                  "{:10.4f}".format(self.buildMatrixTime) + "s")
 
         if verbose:
             print("Dataset => Constructed")
@@ -75,25 +75,28 @@ class DataSet:
     def numOfDocuments(self):
         return len(self.documents)
 
+    def documentLengths(self):
+        return self.documentLengths
+
     def dictionarySize(self):
         return len(self.dictionary)
 
-    def buildMatrix(self):
+    def buildMatrix(self, documents, dictionary):
         partialTuples2Matrix = partial(tuples2Matrix,
                                        dictionarySize=self.dictionarySize(),
                                        matrixFormat=self.matrixFormat,
                                        matrixDType=self.matrixDType)
 
         with mp.Pool(mp.cpu_count() - 1) as p:
-            counts = p.map(self.dictionary.doc2bow, tqdm(
-                self.documents, desc='Counting words'))
-            rows = p.map(partialTuples2Matrix, tqdm(
-                counts, desc='Generating sparse document vectors'))
+            counts = p.map(dictionary.doc2bow, tqdm(
+                documents, desc='Counting words'))
+            # rows = p.map(partialTuples2Matrix, tqdm(
+            #    counts, desc='Generating sparse document vectors'))
 
-        self.matrix = sps.vstack(rows)
+        return counts
 
     def loadXMLFile(self):
-        self.documents = list()
+        documents = list()
         root = ET.parse(self.path).getroot()
         xmlNamespaces = {'root': 'http://www.mediawiki.org/xml/export-0.10/'}
 
@@ -110,11 +113,12 @@ class DataSet:
 
         # Parallel preprocessing of pages
         with mp.Pool(mp.cpu_count() - 1) as p:
-            self.documents = p.map(preprocessText, tqdm(
+            documents = p.map(preprocessText, tqdm(
                 texts, desc='Preprocessing text'))
-
+        documentsLengths = list(map(len, documents))
         # Build gensim dictionary
-        self.dictionary = gsm.corpora.dictionary.Dictionary(self.documents)
+        dictionary = gsm.corpora.dictionary.Dictionary(documents)
+        return [documents, documentsLengths, dictionary]
 
 
 if __name__ == '__main__':
