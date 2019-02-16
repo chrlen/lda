@@ -8,6 +8,7 @@ dataset
 venv
 models
 modelsGensim
+*.pyc
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
