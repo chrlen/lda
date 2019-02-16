@@ -2,7 +2,7 @@
 \input{preamble}
 \input{formulas}
 
-\geometry{top=20mm, left=20mm, right=10mm, bottom=15mm}
+%\geometry{top=20mm, left=20mm, right=10mm, bottom=15mm}
 
 \pagestyle{fancy}
 \lhead{Christian Lengert 153767}
@@ -11,6 +11,10 @@
 \rfoot{Page \thepage}
 
 \begin{document}
+
+\begin{abstract}
+
+\end{abstract}
 \section{The model of Latent Dirichlet Allocation}
 The model of Latent Dirichlet Allocation is a generative probabilistic model for collections of discrete data \cite{Blei2003}. Therefore it qualifies to be used for the explorative analysis of text corpora.
 \subsection{Structure}
@@ -88,7 +92,7 @@ First we have to choose a text corpus to estimate the parameters of the LDA-mode
 For the purpose of speeding up the development process we will perform our operations on an even smaller subset of only 5 articles, to avoid long loading times on every run. We split some articles of the downloaded file into a smaller file with the script in section \ref{extract}.
 
 \subsection{Class : Dataset}
-We concentrate all operations regarding the preprocessing of the data in class named Dataset, which can be examined in section  \ref{class:dataset}. Our goal here is to process all articles and end up with a matrix of wordcounts, each row representing an article and each column representing a word. Therefore we have to establish a common dictionary containing all occurring words from all
+We aggregate all operations regarding the preprocessing of the corpus in a class named Dataset, which can be examined in section  \ref{class:dataset}. Our goal here is to process all articles and end up with a datatructure that provides us with with counts of terms for every document. Therefore we have to establish a common dictionary containing all occurring words from all
 
 \subsection{Class : LDA}
 
@@ -99,7 +103,7 @@ We concentrate all operations regarding the preprocessing of the data in class n
 \bibliographystyle{IEEEtran}
 
 \newpage
-
+%\onecolumn
 \section{Appendix}
 \subsection{Extract subset} \label{extract}
 \lstinputlisting[language=bash]{\scriptpath/extractSmallSubset.bash}
