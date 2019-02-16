@@ -7,6 +7,7 @@ import numpy as np
 from functools import partial
 import time
 from tqdm import tqdm
+import pickle
 
 
 def preprocessText(page, onlyOverview=True):
@@ -33,71 +34,67 @@ def tuples2Matrix(tuples,
 class DataSet:
     def __init__(self,
                  path='../dataset/small.xml',
-                 sparse=True,
                  verbose=True,
-                 matrixFormat='sparse',
-                 matrixDType=sp.int8):
+                 ):
         self.verbose = verbose
-        self.path = path
-        if (matrixFormat == 'sparse'):
-            self.matrixFormat = sps.csc_matrix
-        else:
-            self.matrixFormat = np.matrix
-        self.matrixDType = matrixDType
 
-        if verbose:
+    def load(self, path='../dataset/small.xml'):
+        self.path = path
+
+        if self.verbose:
             print("Dataset => Loading File")
 
         start = time.perf_counter()
-        documents, self.documentLengths, self.dictionary = self.loadXMLFile()
+        documents, self.documentLengths, self.dictionary = self.loadXMLFile(
+            path)
         end = time.perf_counter()
         self.loadTime = end - start
 
-        if verbose:
+        if self.verbose:
             print("Dataset => Parsing " + str(len(documents))
                   + " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
 
-        if verbose:
+        if self.verbose:
             print("Dataset => Building Matrix")
 
         start = time.perf_counter()
-        self.documents = self.buildMatrix(documents, self.dictionary)
+        self.documents = self.countTerms(documents, self.dictionary)
+        self.docLengths = list(map(lambda pairList: np.sum(
+            list(map(lambda p: p[1], pairList))), self.documents))
         end = time.perf_counter()
-        self.buildMatrixTime = end - start
 
-        if verbose:
+        self.termCounts = np.ones(len(self.dictionary))
+        for document in self.documents:
+            for termIndex, count in document:
+                self.termCounts[termIndex] += count
+
+        self.countTermsTime = end - start
+
+        if self.verbose:
             print("Dataset => Building took: "
-                  + "{:10.4f}".format(self.buildMatrixTime) + "s")
+                  + "{:10.4f}".format(self.countTermsTime) + "s")
 
-        if verbose:
+        if self.verbose:
             print("Dataset => Constructed")
 
     def numOfDocuments(self):
         return len(self.documents)
 
     def documentLengths(self):
-        return self.documentLengths
+        return self.docLengths
 
     def dictionarySize(self):
         return len(self.dictionary)
 
-    def buildMatrix(self, documents, dictionary):
-        partialTuples2Matrix = partial(tuples2Matrix,
-                                       dictionarySize=self.dictionarySize(),
-                                       matrixFormat=self.matrixFormat,
-                                       matrixDType=self.matrixDType)
-
+    def countTerms(self, documents, dictionary):
         with mp.Pool(mp.cpu_count() - 1) as p:
             counts = p.map(dictionary.doc2bow, tqdm(
                 documents, desc='Counting words'))
-            # rows = p.map(partialTuples2Matrix, tqdm(
-            #    counts, desc='Generating sparse document vectors'))
-
         return counts
 
-    def loadXMLFile(self):
+    def loadXMLFile(self, path):
         documents = list()
-        root = ET.parse(self.path).getroot()
+        root = ET.parse(path).getroot()
         xmlNamespaces = {'root': 'http://www.mediawiki.org/xml/export-0.10/'}
 
         # Extract text-attribute of pages in Wikipedia-namespace '0'
@@ -128,6 +125,23 @@ class DataSet:
         with open(savePath + 'dictionary.pickle', 'wb') as handle:
             pickle.dump(self.dictionary, handle,
                         protocol=pickle.HIGHEST_PROTOCOL)
+
+    def loadFromDir(self, path):
+        self.dictionary = pickle.load(
+            open(path + "/" + "dictionary.pickle", 'rb')
+        )
+        self.documents = pickle.load(open(path + "/" + "corpus.pickle", 'rb'))
+        self.docLengths = list(map(
+            lambda pairList: np.sum(list(map(
+                lambda p: p[1],
+                pairList
+            ))),
+            self.documents
+        ))
+        self.termCounts = np.ones(len(self.dictionary))
+        for document in self.documents:
+            for termIndex, count in document:
+                self.termCounts[termIndex] += count
 
 
 if __name__ == '__main__':
