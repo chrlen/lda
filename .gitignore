@@ -6,7 +6,8 @@ lda/__pycache__/
 .pytest_cache
 dataset
 venv
-
+models
+modelsGensim
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
