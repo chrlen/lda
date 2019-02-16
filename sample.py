@@ -1,13 +1,14 @@
-from lda.dataset import DataSet
-from lda.inference import LDA
-
-import scipy.stats as spst
-import numpy as np
 import numpy.random as npr
+import numpy as np
+import scipy.stats as spst
+from lda.inference import LDA
+from lda.dataset import DataSet
 
-path = 'dataset/small.xml'
+
+#corputPath = 'dataset/small.xml'
 #path = 'dataset/simplewiki-20181120-pages-meta-current.xml'
 
-dataset = DataSet(path=path)
+dataset = DataSet()
+dataset.load(path)
 model = LDA(maxit=10)
 model.fit(dataset)
