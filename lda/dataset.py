@@ -8,6 +8,7 @@ from functools import partial
 import time
 from tqdm import tqdm
 import pickle
+import sys
 
 
 def preprocessText(page, onlyOverview=True):
@@ -146,6 +147,4 @@ class DataSet:
 
 if __name__ == '__main__':
     dataset = DataSet()
-    print(dataset.numOfDocuments())
-    print(dataset.dictionarySize())
-    print(dataset.matrix.T.dot(dataset.matrix))
+    dataset.load(sys.argv[1])
