@@ -3,4 +3,4 @@ scipy
 gensim
 pattern
 tqdm
-
+pyldaviz
