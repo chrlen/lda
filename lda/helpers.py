@@ -11,6 +11,10 @@ def getIndex(arr):
             counter = counter + 1
 
 
+def randomMultilist(length, nTopics=5):
+    return list(map(getIndex, spst.multinomial(1, [1 / nTopics] * nTopics).rvs(length)))
+
+
 def randomMultimatrix(nColumns=10, nRows=12, nTopics=5):
     columns = range(nColumns)
     return np.matrix(
