@@ -1,4 +1,4 @@
-\documentclass[15pt,landscape,twopage]{article}
+\documentclass[12pt,landscape,twopage]{article}
 \input{preamble}
 \input{formulas}
 
@@ -13,79 +13,65 @@
 \begin{document}
 
 \begin{abstract}
-
+ In this article we will explore the model of Latent Dirichlet Allocation theoretically by introducing the model and multiple algorithms for model selection and inference and practically by implementing an inference algorithm based on Gibb's sampling and exploring and visualizing the results.
+ The first section will give an overview about the model and the domain of problems it is applied to.
+ The second section explains how to implement the model-selection algorithm and will guide the way to  .
+ In the third section we will train the model on a subset of the simple english wikipedia and evaluate the results by visualizing the learned topics with the Python library pyLDAviz.
 \end{abstract}
-\section{The model of Latent Dirichlet Allocation}
-The model of Latent Dirichlet Allocation is a generative probabilistic model for collections of discrete data \cite{Blei2003}. Therefore it qualifies to be used for the explorative analysis of text corpora.
-\subsection{Structure}
 
-\begin{tikzpicture}[shorten >=1pt,node distance=1.5cm,auto]
- \node[state] (q_11)  {$q_{11}$};
- \node[state] (q_10) [below = of q_11] {$q_{10}$};
- 
- \node[state] (q_21) [right= of q_11] {$q_{21}$};raving
- \node[state] (q_20) [right= of q_10] {$q_{20}$};
- 
- \node[state] (q_31) [right= of q_21] {$q_{31}$};
- \node[state] (q_30) [right= of q_20] {$q_{30}$};
- 
- \node[state] (q_41) [right= of q_31] {$q_{41}$};
- \node[state] (q_40) [right= of q_30] {$q_{40}$};
- 
- \node[state] (q_51) [right= of q_41] {$q_{51}$};
- \node[state] (q_50) [right= of q_40] {$q_{50}$};
- 
- \node[state] (q_61) [right= of q_51] {$q_{61}$};
- \node[state] (q_60) [right= of q_50] {$q_{60}$};
- 
- \node[state] (q_71) [right= of q_61] {$q_{71}$};
- \node[state] (q_70) [right= of q_60] {$q_{70}$};
- 
- \node[state] (q_81) [right= of q_71] {$q_{81}$};
- \node[state,accepting,initial below] (q_80) [right= of q_70] {$q_{80}$};
- \path[->]
- 
- (q_11) edge  node {1} (q_20)
- edge  node [swap] {0} (q_21)
- (q_21) edge  node {1} (q_30)
- edge  node [swap] {0} (q_31)
- (q_31) edge  node {1} (q_40)
- edge  node [swap] {0} (q_41)
- (q_41) edge  node {1} (q_50)
- edge  node [swap] {0} (q_51)
- (q_51) edge  node {1} (q_60)
- edge  node [swap] {0} (q_61)
- (q_61) edge  node {1} (q_70)
- edge  node [swap] {0} (q_71)
- (q_71) edge  node {1} (q_80)
- edge  node [swap] {0} (q_81)
- 
- (q_10) edge  node {1} (q_21)
- edge  node [above] {0} (q_20)
- (q_20) edge  node {1} (q_31)
- edge  node [above] {0} (q_30)
- (q_30) edge  node {1} (q_41)
- edge  node [above] {0} (q_40)
- (q_40) edge  node {1} (q_51)
- edge  node [above] {0} (q_50)
- (q_50) edge  node {1} (q_61)
- edge  node [above] {0} (q_60)
- (q_60) edge  node {1} (q_71)
- edge  node [above] {0} (q_70)
- (q_70) edge  node {1} (q_81)
- edge  node [above] {0} (q_80)
- 
- (q_80) 	edge [out=30,in=15]  node [above] {1} (q_11)
- edge [bend left=25]  node [below] {0} (q_10)
- (q_81) 	edge [loop above]  node {1} (q_81)
- edge [loop right]  node {0} (q_81)
- ;
-\end{tikzpicture}
+\section{Latent Dirichlet Allocation}
+The model of Latent Dirichlet Allocation (LDA) is a generative probabilistic model for collections of discrete data proposed by Blei, Ng and Jordan \cite{Blei2003}. It is a mixture model that tries to model latent topics or concepts of multinomial observations, e.g. words in text corpus.
+The probability of a term to occur in a document \(p \left( w=t \right)\) is modelled as a marginal distribution of the joint distribution over topics and terms.
 
-\subsection{Variational Inference}
+\begin{equation}
+ p\left( w=t \right) = \sum\limits_{k} p\left( w=t \vert z=k \right) p\left( z=k \right)
+\end{equation}
 
+\begin{equation*}
+ p\left( w_{m}, z_{m}, \xi_{m} \vert \alpha,\beta \right) = \prod\limits_{w_{m,n}}^{N_m} p \left(w_{m,n} \vert \phi_{z_{m,n}} \right) p \left(z_{m,n} \vert \xi_{m} \right) p \left( \phi \vert \beta \right)
+\end{equation*}
 
+%bag of words
+%documents plate
+%corpus plate
+\subsection{Generative Process}
+To understand the model better we analyze the LDA generative model. To generate a corpus consisting of documents, that consist of words, the steps shown in figure \ref{fig:generativeProcess} have to be taken.
+
+Given the number of topics \(K\), the number of documents \(M\), the Dirichlet-hyperparameters \(\alpha,\beta\) and the moment of the Poisson distribution \( \xi \) we start by specifiying the topics by sampling a categorical topic-word distribution for every topic. These hold a probability for every possible term to occur in the context of the topic. We sample the topic-categoricals from a Dirichlet distribution with the parameter \(\beta\).
+
+With the Dirichlet-samples we can start to generate documents. For every document \( d \) we sample from a Dirichlet distribution again, this time using with the hyperparameter \( \alpha \). The resulting categorical distribution sets probabilities for all topics to be included in the documents. Furthermore we sample a document length from the Poisson distribution.
+
+Finally, for every word to be generated, we sample a topic index from the documents own document-topic-categorical distribution and then sample the term given the
+
+Look in section \ref{code:generativeModel} for an implementation of the process.
+\onecolumn
+\begin{figure}[h]
+ \begin{center}
+  \begin{algorithm}[H]
+   \KwData{Number of topics \(K\), Number of Documents \(M\), Dirichlet parameters \(\alpha\) and \(\beta \), Poisson parameter \(\xi\)}
+   \KwResult{Corpus \( c \)}
+   \For{all topics \(k \in [1,K] \) }{
+    sample topic-term distribution parameters \( \phi_k \sim Dir \left( \beta \right) \)
+   }
+   \For{ all documents \( m \in [1,M] \)}{
+    sample document-topic distribution parameters \( \vartheta \sim Dir \left( \alpha \right) \)\\
+    sample document-length \(l_m \sim Poisson \left( \xi \right) \)\\
+    \For{ all words \( w \in [1,l_m] \)}{
+     sample topic index \( z_{m,n} \sim Mult\left( \xi \right)\)\\
+     sample term for word \( w_{m,n} \) from \( p\left( w_{m,n} \vert z_{m,n}, \beta \right)\) \( w_{m,n} \sim Mult\left( \phi_{z_{m,n}} \right) \)
+    }
+   }
+   
+  \end{algorithm}
+  \caption{The generative model of LDA  \cite{Blei2003,Heinrich2005}}\label{fig:generativeProcess}
+ \end{center}
+\end{figure}
+\subsection{Model Selection}
+%describe algorithm
+%what are hyperparameteres
+%what are cojugate priors
 \section{Imlementation}
+Although the inference algorithm can potentially be parallelized in multiple ways \cite{Newman2006ScalablePT,Wang2009PLDAPL}, we aim to create a serial implementation
 \subsection{Preparation}
 First we have to choose a text corpus to estimate the parameters of the LDA-model from. For this we use a dump from the simple english wikipedia \cite{simplewi84:online}, namely the version named 'All pages, current versions only'.
 
@@ -109,11 +95,13 @@ We aggregate all operations regarding the preprocessing of the corpus in a class
 \lstinputlisting[language=bash]{\scriptpath/extractSmallSubset.bash}
 
 \subsection{Class : Dataset} \label{class:dataset}
-\lstinputlisting[language=python]{\codepath/dataset.py}
+\lstinputlisting[language=python]{\codepath/lda/dataset.py}
 
 \subsection{Class : LDA} \label{class:lda}
-\lstinputlisting[language=python]{\codepath/inference.py}
+\lstinputlisting[language=python]{\codepath/lda/inference.py}
 
+\subsection{Class : LDA} \label{code:generativeModel}
+\lstinputlisting[language=python]{\codepath/lda/generativeModel.py}
 
 
 \end{document}
