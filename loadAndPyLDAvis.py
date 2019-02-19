@@ -1,7 +1,7 @@
 import pickle
 import pyLDAvis
-path = 'models/small/'
-
+import sys
+path = sys.argv[1] + '/'
 phi = pickle.load(open(path + 'phi.pickle', 'rb'))
 theta = pickle.load(open(path + 'theta.pickle', 'rb'))
 docLengths = pickle.load(open(path + 'docLengths.pickle', 'rb'))
