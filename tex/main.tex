@@ -67,12 +67,14 @@ Look in section \ref{code:generativeModel} for an implementation of the process.
  \end{center}
 \end{figure}
 \subsection{Model Selection}
-Various algorithms to tackle the inference problem for LDA have been proposed. There exist
+
+\subsubsection{algorithm}
+Various algorithms to tackle the inference problem for LDA have been proposed \cite{Blei2003}. In this report we will focus on a specific Markov-Chain Monte-Carlo based method, namely a Gibb's sampler. We will execute the inference with the algorithm explained by Pefta et. al.
 %describe algorithm
 %what are hyperparameteres
 %what are cojugate priors
 \section{Imlementation}
-Although the inference algorithm can potentially be parallelized in multiple ways \cite{Newman2006ScalablePT,Wang2009PLDAPL}, we aim to create a serial implementation
+Although the inference algorithm can potentially be parallelized in multiple ways \cite{Newman2006ScalablePT,Wang2009PLDAPL}, we aim to create a serial implementation for to strive for correctness instead of performance.
 \subsection{Preparation}
 First we have to choose a text corpus to estimate the parameters of the LDA-model from. For this we use a dump from the simple english wikipedia \cite{simplewi84:online}, namely the version named 'All pages, current versions only'.
 
