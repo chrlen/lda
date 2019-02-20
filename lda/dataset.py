@@ -85,8 +85,10 @@ class DataSet:
         self.countTermsTime = end - start
 
         if self.verbose:
-            print("Dataset => Building took: " +
-                  "{:10.4f}".format(self.countTermsTime) + "s")
+            print("Dataset => Building took: {:10.4f}s".format(
+                self.countTermsTime))
+            print("Dataset => {:10} documents and {:10} terms".format(
+                self.numOfDocuments(), self.dictionarySize()))
 
     def numOfDocuments(self):
         return len(self.documents)
