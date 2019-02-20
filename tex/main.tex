@@ -1,4 +1,4 @@
-\documentclass[12pt,landscape,twopage]{article}
+\documentclass[12 pt,twopage]{article}
 \input{preamble}
 \input{formulas}
 
@@ -7,28 +7,54 @@
 \pagestyle{fancy}
 \lhead{Christian Lengert 153767}
 \rhead{\today}
-\chead{Graphical Models Lab : Latent Dirichlet Allocation (LDA)}
+\chead{Graphical Models Lab}
 \rfoot{Page \thepage}
 
+ \setlength{\parindent}{0pt}
 \begin{document}
 
 \begin{abstract}
+
  In this article we will explore the model of Latent Dirichlet Allocation theoretically by introducing the model and multiple algorithms for model selection and inference and practically by implementing an inference algorithm based on Gibb's sampling and exploring and visualizing the results.
  The first section will give an overview about the model and the domain of problems it is applied to.
  The second section explains how to implement the model-selection algorithm and will guide the way to  .
  In the third section we will train the model on a subset of the simple english wikipedia and evaluate the results by visualizing the learned topics with the Python library pyLDAviz.
 \end{abstract}
 
+%\twocolumn
 \section{Latent Dirichlet Allocation}
 The model of Latent Dirichlet Allocation (LDA) is a generative probabilistic model for collections of discrete data proposed by Blei, Ng and Jordan \cite{Blei2003}. It is a mixture model that tries to model latent topics or concepts of multinomial observations, e.g. words in text corpus.
-The probability of a term to occur in a document \(p \left( w=t \right)\) is modelled as a marginal distribution of the joint distribution over topics and terms.
 
-\begin{equation}
- p\left( w=t \right) = \sum\limits_{k} p\left( w=t \vert z=k \right) p\left( z=k \right)
-\end{equation}
+\begin{figure}[h]
+ \begin{center}
+  \begin{footnotesize}
+   \begin{description}
+    \item[\( K \)] : Number of topics to be found by the model
+    \item[\( M \)] : Number of documents in the corpus
+    \item[\( V \)] : Number of unique terms in the dictionary
+    \item[\( \vec\alpha \in \mathbb{R}^K \)] : Hyperparameter of the document-topic Dirichlet distribution
+    \item[\( \vec\beta \in \mathbb{R}^V \)] : Hyperparameter of the topic-word Dirichlet distribution
+    \item[\( \vec\vartheta_m \in \mathbb{R}^K \)] : Topic distribution of each document \(m\).
+    \item[\( \vec\phi_k \in \mathbb{R}^V \)] : Term distribution of each topic \(k\).
+    \item[\( N_m \)] : The length of the m-th document.
+    \item[\( z_{m,n} \)] : Topic index for the \(n\)-th word in document \(m\).
+    \item[\( w_{m,n} \)] : the \(n\)-th word in document \(m\).
+   \end{description}
+  \end{footnotesize}
+ \end{center}
+ \caption{Notation}
+ \label{fig:notation}
+\end{figure}
+
+To understand the structure of the model we will look at the Likelihood-function for
+The probability of a term to occur in a document \(p \left( w=t \right)\) is modeled as a marginal distribution of the joint distribution over topics and terms.
+\onecolumn
+%\begin{equation}
+% p\left( w=t \right) = \sum\limits_{k} p\left( w=t \midd z=k \right) p\left( z=k \right)
+%\end{equation}
 
 \begin{equation*}
- p\left( w_{m}, z_{m}, \xi_{m} \vert \alpha,\beta \right) = \prod\limits_{w_{m,n}}^{N_m} p \left(w_{m,n} \vert \phi_{z_{m,n}} \right) p \left(z_{m,n} \vert \xi_{m} \right) p \left( \phi \vert \beta \right)
+ p\left( \vec{w}_{m}, \vec{z}_{m}, \vec{\vartheta}_{m} \midd \vec{\alpha}, \vec{\beta} \right) = \prod\limits_{w_{m,n}}^{N_m} p \left(w_{m,n} \midd \vec\phi_{z_{m,n}} \right) p \left(z_{m,n} \midd \vec\vartheta_{m} \right) p\left( \vec\vartheta_m \midd \vec\alpha \right) p \left( \phi \midd \vec\beta \right)
 \end{equation*}
 
 %bag of words
@@ -58,7 +84,7 @@ Look in section \ref{code:generativeModel} for an implementation of the process.
     sample document-length \(l_m \sim Poisson \left( \xi \right) \)\\
     \For{ all words \( w \in [1,l_m] \)}{
      sample topic index \( z_{m,n} \sim Mult\left( \xi \right)\)\\
-     sample term for word \( w_{m,n} \) from \( p\left( w_{m,n} \vert z_{m,n}, \beta \right)\) \( w_{m,n} \sim Mult\left( \phi_{z_{m,n}} \right) \)
+     sample term for word \( w_{m,n} \) from \( p\left( w_{m,n} \midd z_{m,n}, \beta \right)\) \( w_{m,n} \sim Mult\left( \phi_{z_{m,n}} \right) \)
     }
    }
    
@@ -81,11 +107,77 @@ First we have to choose a text corpus to estimate the parameters of the LDA-mode
 For the purpose of speeding up the development process we will perform our operations on an even smaller subset of only 5 articles, to avoid long loading times on every run. We split some articles of the downloaded file into a smaller file with the script in section \ref{extract}.
 
 \subsection{Class : Dataset}
-We aggregate all operations regarding the preprocessing of the corpus in a class named Dataset, which can be examined in section  \ref{class:dataset}. Our goal here is to process all articles and end up with a datatructure that provides us with with counts of terms for every document. Therefore we have to establish a common dictionary containing all occurring words from all
+We aggregate all operations regarding the preprocessing of the corpus in a class named Dataset, which can be examined in section  \ref{class:dataset}. Our goal here is to process all articles and end up with a datatructure that provides us with with counts of terms for every document. Therefore we have to establish a common dictionary containing all occurring words from all documents and process
 
 \subsection{Class : LDA}
 
-\section{Applying LDA}
+\section{Evaluation}
+To evaluate the topics that the model has learned in the trainingprocess on the wikipedia dataset we will use the Python package PyLDAviz. The plots of the first six found topics can be found in the figures \ref{fig:t12}, \ref{fig:t34} and \ref{fig:t56}. All plots show an intertopic distance map on the left side and a histogram on the right side. The distance map is a two dimensional projection of the topic space computed with a multidimensional scaling algorithm \cite{Sievert2014}. The Histogram shows the most frequent terms for the chosen topic in descending order, in which the the red bar shows the term frequency in the topic and the blue bar the overall term frequency.
+The model in use is trained for 50 iterations on the first 10000 artices of the dataset consiting of \( 196934 \) documents.
+\bigbreak
+To try to find a possible semantic we will take a look at the most frequent terms in the topics.
+
+\paragraph{Topic 1}
+The first topic contains many terms related to the internet, communcation and publication. The five most frequent terms are \enquote{title},\enquote{http},\enquote{cite},\enquote{url} and \enquote{web}.
+\paragraph{Topic 2}
+\paragraph{Topic 3}
+\paragraph{Topic 4}
+\paragraph{Topic 5}
+\paragraph{Topic 5}
+
+
+\begin{figure}
+ \begin{subfigure}[c]{1\textwidth}
+  \caption{Topic 1}
+  \centering
+  \includegraphics[width=.9\linewidth]{\gpath/t1.png}
+ \end{subfigure}
+ \begin{subfigure}[c]{1\textwidth}
+  \caption{Topic 2}
+  \centering
+  \includegraphics[width=.9\linewidth]{\gpath/t2.png}
+ \end{subfigure}
+ \caption{Plots of the first six topics}
+ \label{fig:t12}
+\end{figure}
+
+
+\begin{figure}
+ \begin{subfigure}[c]{1\textwidth}
+  \caption{Topic 3}
+  \centering
+  \includegraphics[width=.9\linewidth]{\gpath/t3.png}
+ \end{subfigure}
+ \begin{subfigure}[c]{1\textwidth}
+  \caption{Topic 4}
+  \centering
+  \includegraphics[width=.9\linewidth]{\gpath/t4.png}
+ \end{subfigure}
+ \caption{Plots of topic 3 and 4}
+ \label{fig:t34}
+\end{figure}
+
+
+\begin{figure}
+ \begin{subfigure}[c]{1\textwidth}
+  \caption{Topic 5}
+  \centering
+  \includegraphics[width=.9\linewidth]{\gpath/t5.png}
+ \end{subfigure}
+ \begin{subfigure}[c]{1\textwidth}
+  \caption{Topic 6}
+  \centering
+  \includegraphics[width=.9\linewidth]{\gpath/t6.png}
+ \end{subfigure}
+ \caption{Plots of the first six topics}
+ \label{fig:t56}
+\end{figure}
+
+
+
+
+
+
 \newpage
 
 \bibliography{refs}
