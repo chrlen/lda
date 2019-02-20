@@ -36,8 +36,10 @@ class DataSet:
     def __init__(self,
                  path='../dataset/small.xml',
                  verbose=True,
+                 filterDocumentLengthSmallerThan=4
                  ):
         self.verbose = verbose
+        self.filterDocs = filterDocumentLengthSmallerThan
 
     def load(self, path='../dataset/small.xml'):
         self.path = path
@@ -60,6 +62,9 @@ class DataSet:
 
         start = time.perf_counter()
         self.documents = self.countTerms(documents, self.dictionary)
+        self.documents = [
+            document for document in documents if len(document) > self.filterDocs
+        ]
         self.docLengths = list(map(lambda pairList:
                                    int(
                                        np.sum(
