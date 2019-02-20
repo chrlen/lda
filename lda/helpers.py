@@ -1,5 +1,28 @@
 import scipy.stats as spst
 import numpy as np
+import multiprocessing as mp
+import ctypes
+
+
+def sharedZeros(nRows, nColumns, ctype=ctypes.c_int):
+    shared_array_base = mp.Array(ctype, nRows * nColumns)
+    shared_array = np.ctypeslib.as_array(shared_array_base.get_obj())
+    shared_array = shared_array.reshape(nRows, nColumns)
+    return(shared_array)
+
+
+def sharedArray(data, ctype=ctypes.c_int):
+    shared_array_base = mp.Array(ctype, data)
+    shared_array = np.ctypeslib.as_array(shared_array_base.get_obj())
+    return(shared_array)
+
+
+def sharedMultiMatrix(nRows, nColumns, nTopics=5, ctype=ctypes.c_int):
+    shared_array_base = mp.Array(
+        ctype, randomMultilist(nRows * nColumns, nTopics=nTopics))
+    shared_array = np.ctypeslib.as_array(shared_array_base.get_obj())
+    shared_array = shared_array.reshape(nRows, nColumns)
+    return(shared_array)
 
 
 def getIndex(arr):
