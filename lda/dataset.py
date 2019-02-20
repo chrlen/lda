@@ -106,6 +106,9 @@ class DataSet:
             if 0 == int(page.find('root:ns', xmlNamespaces).text)
         ]
 
+        # Only use description text
+        texts = [text.split('==')[0] for text in texts]
+
         if self.verbose:
             print('Parse xml')
 
