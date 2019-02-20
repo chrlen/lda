@@ -121,9 +121,6 @@ class DataSet:
         # Only use description text
         texts = [text.split('==')[0] for text in texts]
 
-        if self.verbose:
-            print('Parse xml')
-
         # Parallel preprocessing of pages
         with mp.Pool(mp.cpu_count() - 1) as p:
             documents = p.map(preprocessText, tqdm(
