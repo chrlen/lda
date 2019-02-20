@@ -62,15 +62,22 @@ class DataSet:
 
         start = time.perf_counter()
         self.documents = self.countTerms(documents, self.dictionary)
+
         self.documents = [
-            document for document in documents if len(document) > self.filterDocs
+            d for d in self.documents if len(d) > self.filterDocs
         ]
-        self.docLengths = list(map(lambda pairList:
-                                   int(
-                                       np.sum(
-                                           list(map(lambda p: p[1], pairList))
-                                       )
-                                   ), self.documents))
+
+        self.docLengths = [
+            int(np.sum([pair[1] for pair in doc]))
+            for doc in self.documents
+        ]
+
+        # self.docLengths = list(map(lambda pairList:
+        #                           int(
+        #                               np.sum(
+        #                                   list(map(lambda p: p[1], pairList))
+        #                               )
+        #                           ), self.documents))
         end = time.perf_counter()
 
         self.termCounts = np.ones(len(self.dictionary))
