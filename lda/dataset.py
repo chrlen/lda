@@ -45,7 +45,7 @@ class DataSet:
         self.path = path
 
         if self.verbose:
-            print("Dataset => Loading File")
+            print("Dataset => Loading XML File")
 
         start = time.perf_counter()
         documents, self.documentLengths, self.dictionary = self.loadXMLFile(
@@ -54,11 +54,11 @@ class DataSet:
         self.loadTime = end - start
 
         if self.verbose:
-            print("Dataset => Parsing " + str(len(documents))
-                  + " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
+            print("Dataset => Parsing " + str(len(documents)) +
+                  " documents took: " + "{:10.4f}".format(self.loadTime) + "s")
 
         if self.verbose:
-            print("Dataset => Building Matrix")
+            print("Dataset => Counting Terms")
 
         start = time.perf_counter()
         self.documents = self.countTerms(documents, self.dictionary)
@@ -68,31 +68,25 @@ class DataSet:
         ]
 
         self.docLengths = [
-            int(np.sum([pair[1] for pair in doc]))
+            int(
+                np.sum(
+                    [pair[1] for pair in doc]
+                )
+            )
             for doc in self.documents
         ]
-
-        # self.docLengths = list(map(lambda pairList:
-        #                           int(
-        #                               np.sum(
-        #                                   list(map(lambda p: p[1], pairList))
-        #                               )
-        #                           ), self.documents))
-        end = time.perf_counter()
 
         self.termCounts = np.ones(len(self.dictionary))
         for document in self.documents:
             for termIndex, count in document:
                 self.termCounts[termIndex] += count
 
+        end = time.perf_counter()
         self.countTermsTime = end - start
 
         if self.verbose:
-            print("Dataset => Building took: "
-                  + "{:10.4f}".format(self.countTermsTime) + "s")
-
-        if self.verbose:
-            print("Dataset => Constructed")
+            print("Dataset => Building took: " +
+                  "{:10.4f}".format(self.countTermsTime) + "s")
 
     def numOfDocuments(self):
         return len(self.documents)
