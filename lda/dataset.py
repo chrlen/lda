@@ -60,8 +60,12 @@ class DataSet:
 
         start = time.perf_counter()
         self.documents = self.countTerms(documents, self.dictionary)
-        self.docLengths = list(map(lambda pairList: np.sum(
-            list(map(lambda p: p[1], pairList))), self.documents))
+        self.docLengths = list(map(lambda pairList:
+                                   int(
+                                       np.sum(
+                                           list(map(lambda p: p[1], pairList))
+                                       )
+                                   ), self.documents))
         end = time.perf_counter()
 
         self.termCounts = np.ones(len(self.dictionary))
