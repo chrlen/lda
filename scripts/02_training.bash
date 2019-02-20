@@ -2,12 +2,12 @@
 
 source activate lda
 
-iterations=500
-topics=50
+iterations=1000
+topics=20
 
 modeldir=$(date | sed -e "s/ /_/g")_${iterations}_${topics}
 mkdir models/${modeldir}
-mkdir models/${modeldir}/small
+#mkdir models/${modeldir}/small
 mkdir models/${modeldir}/full
-python training.py ${iterations} ${topics} dataset/small models/${modeldir}/small &
-python training.py ${iterations} ${topics} dataset/full models/${modeldir}/full &
+#python training.py ${iterations} ${topics} dataset/small models/${modeldir}/small
+python training.py ${iterations} ${topics} dataset/full models/${modeldir}/full
