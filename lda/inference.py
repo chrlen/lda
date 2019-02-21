@@ -186,11 +186,12 @@ class LDA():
                     # Scale
                     params = np.asarray(params).astype('float64')
                     params = params / np.sum(params)
-                    if np.sum(params) < 1:
-                        newTopicIndex = hlp.getIndex(
-                            spst.multinomial(1, params).rvs()[0])
-                    else:
-                        newTopicIndex = previousTopicIndex
+
+                    # if np.sum(params) < 1:
+                    #    newTopicIndex = hlp.getIndex(
+                    #        spst.multinomial(1, params).rvs()[0])
+                    # else:
+                    newTopicIndex = previousTopicIndex
 
                     topicAssociations_z[documentIndex][wordIndex] = newTopicIndex
                     # For new assignments of z_{m,n} to the term t for word w_{m,n}
