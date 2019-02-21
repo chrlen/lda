@@ -74,7 +74,7 @@ class LDA():
         topicLocks = [mp.Lock() for i in range(nTopics)]
 
         global termLocks
-        termLocks = dict()
+        termLocks = [mp.Lock() for i in range(nTopics)]
 
         # M: Number of documents
         # K: Number of topics
@@ -169,11 +169,7 @@ class LDA():
             wordIndex = 0
             for pair in document:
                 termIndex = pair[0]
-                if termIndex in termLocks:
-                    termLocks[termIndex].acquire()
-                else:
-                    termLocks[termIndex] = mp.Lock()
-                    termLocks[termIndex].acquire()
+                termLocks[termIndex].acquire()
 
                 for c in range(pair[1]):
                     previousTopicIndex = topicAssociations_z[documentIndex, wordIndex]
