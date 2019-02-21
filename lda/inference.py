@@ -187,8 +187,14 @@ class LDA():
                     params = np.asarray(params).astype('float64')
                     params = params / np.sum(params)
 
-                    newTopicIndex = hlp.getIndex(
-                        spst.multinomial(1, params).rvs()[0])
+                    self.omited = 0
+                    if len([p for p in params if p < 0]) != 0:
+                        newTopicIndex = previousTopicIndex
+                        self.omited += 1
+                        print("Omitted: ", str(self.omited))
+                    else:
+                        newTopicIndex = hlp.getIndex(
+                            spst.multinomial(1, params).rvs()[0])
 
                     topicAssociations_z[documentIndex,
                                         wordIndex] = newTopicIndex
