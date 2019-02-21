@@ -74,7 +74,7 @@ class LDA():
         topicLocks = [mp.Lock() for i in range(nTopics)]
 
         global termLocks
-        termLocks = [mp.Lock() for i in range(nTopics)]
+        termLocks = [mp.Lock() for i in range(dataset.dictionarySize())]
 
         # M: Number of documents
         # K: Number of topics
@@ -200,13 +200,6 @@ class LDA():
                     params = np.asarray(params).astype('float64')
                     params = params / np.sum(params)
 
-                    # if len([p for p in params if p < 0]) != 0:
-                    #    newTopicIndex = previousTopicIndex
-                    #    print("Omitted: ", params)
-                    #    print("Term: ", termIndex)
-                    # else:
-                    #    newTopicIndex = hlp.getIndex(
-                    #        spst.multinomial(1, params).rvs()[0])
                     newTopicIndex = hlp.getIndex(
                         spst.multinomial(1, params).rvs()[0])
 
