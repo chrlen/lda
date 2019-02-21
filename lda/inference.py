@@ -73,6 +73,9 @@ class LDA():
         global termLocks
         termLocks = [mp.Lock() for i in range(dataset.dictionarySize())]
 
+        global topicLocks
+        topicLocks = [mp.Lock() for i in range(nTopics)]
+
         # M: Number of documents
         # K: Number of topics
         # V: number of Terms
@@ -158,17 +161,20 @@ class LDA():
             beta=beta,
             alpha=alpha,
             nTopics=nTopics,
-            termLocks=termLocks
+            termLocks=termLocks,
+            topicLocks=topicLocks
         ):
             document = documents[documentIndex]
             wordIndex = 0
             for pair in document:
                 termIndex = pair[0]
                 termLocks[termIndex].acquire()
+
                 for c in range(pair[1]):
                     previousTopicIndex = topicAssociations_z[documentIndex, wordIndex]
 
                     # For the current assignment of k to a term t for word w_{m,n}
+                    topicLocks[previousTopicIndex].acquire()
                     documentTopic_count_n_mk[documentIndex,
                                              previousTopicIndex] -= 1
                     documentTopic_sum_n_m[documentIndex] -= 1
@@ -187,19 +193,23 @@ class LDA():
                         f = documentTopic_count_n_mk[documentIndex,
                                                      topicIndex] + alpha[topicIndex]
                         params[topicIndex] = (n / d) * f
+                    topicLocks[previousTopicIndex].release()
 
                     # Scale
                     params = np.asarray(params).astype('float64')
                     params = params / np.sum(params)
 
-                    if len([p for p in params if p < 0]) != 0:
-                        newTopicIndex = previousTopicIndex
-                        print("Omitted: ", params)
-                        print("Term: ", termIndex)
-                    else:
-                        newTopicIndex = hlp.getIndex(
-                            spst.multinomial(1, params).rvs()[0])
+                    # if len([p for p in params if p < 0]) != 0:
+                    #    newTopicIndex = previousTopicIndex
+                    #    print("Omitted: ", params)
+                    #    print("Term: ", termIndex)
+                    # else:
+                    #    newTopicIndex = hlp.getIndex(
+                    #        spst.multinomial(1, params).rvs()[0])
+                    newTopicIndex = hlp.getIndex(
+                        spst.multinomial(1, params).rvs()[0])
 
+                    topicLocks[newTopicIndex].acquire()
                     topicAssociations_z[documentIndex,
                                         wordIndex] = newTopicIndex
                     # For new assignments of z_{m,n} to the term t for word w_{m,n}
@@ -209,6 +219,8 @@ class LDA():
                     topicTerm_count_n_kt[newTopicIndex,
                                          termIndex] += 1
                     topicTerm_sum_n_k[newTopicIndex] += 1
+
+                    topicLocks[newTopicIndex].release()
                     wordIndex += 1
                 termLocks[termIndex].release()
 
@@ -423,8 +435,8 @@ class LDA():
         """Calculate Parameters of The topic-term multinomial"""
         self.phi = np.zeros((self.nTopics, self.dataset.dictionarySize()))
         for topicIndex, termIndex in tqdm(it.product(range(self.nTopics), range(self.dataset.dictionarySize())), desc='Computing Phi'):
-            self.phi[topicIndex, termIndex] = (self.topicTerm_count_n_kt[topicIndex, termIndex]
-                                               + self.beta[termIndex]) / (self.topicTerm_sum_n_k[topicIndex] + self.beta[termIndex])
+            self.phi[topicIndex, termIndex] = (self.topicTerm_count_n_kt[topicIndex, termIndex] +
+                                               self.beta[termIndex]) / (self.topicTerm_sum_n_k[topicIndex] + self.beta[termIndex])
 
     def compute_theta(self):
         """Calculate Parameters of The document-topic multinomial"""
