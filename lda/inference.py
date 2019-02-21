@@ -84,7 +84,7 @@ class LDA():
 
         global topicAssociations_z
         partialMultilist = partial(hlp.randomMultilist, nTopics=nTopics)
-        self.topicAssociations_z = list(
+        topicAssociations_z = list(
             map(partialMultilist, dataset.documentLengths())
         )
         # topicAssociations_z = hlp.sharedMultiMatrix(
