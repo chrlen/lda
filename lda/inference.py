@@ -83,9 +83,13 @@ class LDA():
         # V: number of Terms
 
         global topicAssociations_z
-        topicAssociations_z = hlp.sharedMultiMatrix(
-            dataset.numOfDocuments(), np.max(dataset.documentLengths()), nTopics
+        partialMultilist = partial(hlp.randomMultilist, nTopics=nTopics)
+        self.topicAssociations_z = list(
+            map(partialMultilist, dataset.documentLengths())
         )
+        # topicAssociations_z = hlp.sharedMultiMatrix(
+        #    dataset.numOfDocuments(), np.max(dataset.documentLengths()), nTopics
+        # )
 
         # M x K
         global documentTopic_count_n_mk
