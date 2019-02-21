@@ -70,6 +70,9 @@ class LDA():
         global documents
         documents = dataset.documents
 
+        global termLocks
+        termLocks = [mp.Lock() for i in range(dataset.dictionarySize())]
+
         # M: Number of documents
         # K: Number of topics
         # V: number of Terms
@@ -154,12 +157,14 @@ class LDA():
             topicTerm_sum_n_k=topicTerm_sum_n_k,
             beta=beta,
             alpha=alpha,
-            nTopics=nTopics
+            nTopics=nTopics,
+            termLocks=termLocks
         ):
             document = documents[documentIndex]
             wordIndex = 0
             for pair in document:
                 termIndex = pair[0]
+                termLocks[termIndex].acquire()
                 for c in range(pair[1]):
                     previousTopicIndex = topicAssociations_z[documentIndex, wordIndex]
 
@@ -205,6 +210,7 @@ class LDA():
                                          termIndex] += 1
                     topicTerm_sum_n_k[newTopicIndex] += 1
                     wordIndex += 1
+                termLocks[termIndex].release()
 
         for iteration in tqdm(range(self.maxit), desc='Sampling: '):
             with mp.Pool(mp.cpu_count() - 1) as p:
