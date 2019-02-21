@@ -2,7 +2,7 @@
 
 #source activate lda
 
-iterations=3
+iterations=5000
 topics=20
 
 modeldir=$(date | sed -e "s/ /_/g")_${iterations}_${topics}
