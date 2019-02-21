@@ -161,7 +161,7 @@ class LDA():
             for pair in document:
                 termIndex = pair[0]
                 for c in range(pair[1]):
-                    previousTopicIndex = topicAssociations_z[documentIndex][wordIndex]
+                    previousTopicIndex = topicAssociations_z[documentIndex, wordIndex]
 
                     # For the current assignment of k to a term t for word w_{m,n}
                     documentTopic_count_n_mk[documentIndex,
@@ -193,7 +193,8 @@ class LDA():
                     # else:
                     newTopicIndex = previousTopicIndex
 
-                    topicAssociations_z[documentIndex][wordIndex] = newTopicIndex
+                    topicAssociations_z[documentIndex,
+                                        wordIndex] = newTopicIndex
                     # For new assignments of z_{m,n} to the term t for word w_{m,n}
                     documentTopic_count_n_mk[documentIndex,
                                              newTopicIndex] += 1
@@ -414,8 +415,8 @@ class LDA():
         """Calculate Parameters of The topic-term multinomial"""
         self.phi = np.zeros((self.nTopics, self.dataset.dictionarySize()))
         for topicIndex, termIndex in tqdm(it.product(range(self.nTopics), range(self.dataset.dictionarySize())), desc='Computing Phi'):
-            self.phi[topicIndex, termIndex] = (self.topicTerm_count_n_kt[topicIndex, termIndex]
-                                               + self.beta[termIndex]) / (self.topicTerm_sum_n_k[topicIndex] + self.beta[termIndex])
+            self.phi[topicIndex, termIndex] = (self.topicTerm_count_n_kt[topicIndex, termIndex] +
+                                               self.beta[termIndex]) / (self.topicTerm_sum_n_k[topicIndex] + self.beta[termIndex])
 
     def compute_theta(self):
         """Calculate Parameters of The document-topic multinomial"""
