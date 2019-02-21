@@ -70,8 +70,10 @@ class LDA():
         global documents
         documents = dataset.documents
 
-        global termLocks
-        termLocks = [mp.Lock() for i in range(dataset.dictionarySize())]
+        global termDictLock
+        termDictLock = mp.Lock()
+        global termDict
+        termDict = dict()
 
         global topicLocks
         topicLocks = [mp.Lock() for i in range(nTopics)]
@@ -161,43 +163,48 @@ class LDA():
             beta=beta,
             alpha=alpha,
             nTopics=nTopics,
-            termLocks=termLocks,
-            topicLocks=topicLocks
+            topicLocks=topicLocks,
+            termDictLock=termDictLock
         ):
             document = documents[documentIndex]
             wordIndex = 0
             for pair in document:
                 termIndex = pair[0]
-                termLocks[termIndex].acquire()
+                termDictLock.acquire()
+                if termIndex in termDict:
+                    print("Iteration ommited")
+                    termDictLock.release()
+                else:
+                    termDict[termIndex] = True
+                    termDictLock.release()
+                    for c in range(pair[1]):
+                        previousTopicIndex = topicAssociations_z[documentIndex, wordIndex]
 
-                for c in range(pair[1]):
-                    previousTopicIndex = topicAssociations_z[documentIndex, wordIndex]
-
-                    # For the current assignment of k to a term t for word w_{m,n}
-                    topicLocks[previousTopicIndex].acquire()
-                    documentTopic_count_n_mk[documentIndex,
-                                             previousTopicIndex] -= 1
-                    documentTopic_sum_n_m[documentIndex] -= 1
-                    topicTerm_count_n_kt[previousTopicIndex,
-                                         termIndex] -= 1
-                    topicTerm_sum_n_k[previousTopicIndex] -= 1
+                        # For the current assignment of k to a term t for word w_{m,n}
+                        topicLocks[previousTopicIndex].acquire()
+                        documentTopic_count_n_mk[documentIndex,
+                                                 previousTopicIndex] -= 1
+                        documentTopic_sum_n_m[documentIndex] -= 1
+                        topicTerm_count_n_kt[previousTopicIndex,
+                                             termIndex] -= 1
+                        topicTerm_sum_n_k[previousTopicIndex] -= 1
 
                     # multinomial sampling acc. to Eq. 78 (decrements from previous step)
 
-                    params = np.zeros(nTopics)
-                    for topicIndex in range(nTopics):
-                        n = topicTerm_count_n_kt[topicIndex,
-                                                 termIndex] + beta[termIndex]
-                        d = topicTerm_sum_n_k[topicIndex] + \
-                            beta[termIndex]
-                        f = documentTopic_count_n_mk[documentIndex,
-                                                     topicIndex] + alpha[topicIndex]
-                        params[topicIndex] = (n / d) * f
-                    topicLocks[previousTopicIndex].release()
+                        params = np.zeros(nTopics)
+                        for topicIndex in range(nTopics):
+                            n = topicTerm_count_n_kt[topicIndex,
+                                                     termIndex] + beta[termIndex]
+                            d = topicTerm_sum_n_k[topicIndex] + \
+                                beta[termIndex]
+                            f = documentTopic_count_n_mk[documentIndex,
+                                                         topicIndex] + alpha[topicIndex]
+                            params[topicIndex] = (n / d) * f
+                        topicLocks[previousTopicIndex].release()
 
                     # Scale
-                    params = np.asarray(params).astype('float64')
-                    params = params / np.sum(params)
+                        params = np.asarray(params).astype('float64')
+                        params = params / np.sum(params)
 
                     # if len([p for p in params if p < 0]) != 0:
                     #    newTopicIndex = previousTopicIndex
@@ -206,23 +213,25 @@ class LDA():
                     # else:
                     #    newTopicIndex = hlp.getIndex(
                     #        spst.multinomial(1, params).rvs()[0])
-                    newTopicIndex = hlp.getIndex(
-                        spst.multinomial(1, params).rvs()[0])
+                        newTopicIndex = hlp.getIndex(
+                            spst.multinomial(1, params).rvs()[0])
 
-                    topicLocks[newTopicIndex].acquire()
-                    topicAssociations_z[documentIndex,
-                                        wordIndex] = newTopicIndex
+                        topicLocks[newTopicIndex].acquire()
+                        topicAssociations_z[documentIndex,
+                                            wordIndex] = newTopicIndex
                     # For new assignments of z_{m,n} to the term t for word w_{m,n}
-                    documentTopic_count_n_mk[documentIndex,
-                                             newTopicIndex] += 1
-                    documentTopic_sum_n_m[documentIndex] += 1
-                    topicTerm_count_n_kt[newTopicIndex,
-                                         termIndex] += 1
-                    topicTerm_sum_n_k[newTopicIndex] += 1
+                        documentTopic_count_n_mk[documentIndex,
+                                                 newTopicIndex] += 1
+                        documentTopic_sum_n_m[documentIndex] += 1
+                        topicTerm_count_n_kt[newTopicIndex,
+                                             termIndex] += 1
+                        topicTerm_sum_n_k[newTopicIndex] += 1
 
-                    topicLocks[newTopicIndex].release()
-                    wordIndex += 1
-                termLocks[termIndex].release()
+                        topicLocks[newTopicIndex].release()
+                        wordIndex += 1
+                    termDictLock.acquire()
+                    termDict.pop(termIndex, None)
+                    termDictLock.release()
 
         for iteration in tqdm(range(self.maxit), desc='Sampling: '):
             with mp.Pool(mp.cpu_count() - 1) as p:
