@@ -190,6 +190,7 @@ class LDA():
                     if len([p for p in params if p < 0]) != 0:
                         newTopicIndex = previousTopicIndex
                         print("Omitted: ", params)
+                        print("Term: ", termIndex)
                     else:
                         newTopicIndex = hlp.getIndex(
                             spst.multinomial(1, params).rvs()[0])
