@@ -182,7 +182,7 @@ class LDA():
                     termDict[termIndex] = True
                     termDictLock.release()
                     for c in range(pair[1]):
-                        previousTopicIndex = topicAssociations_z[documentIndex, wordIndex]
+                        previousTopicIndex = topicAssociations_z[documentIndex][wordIndex]
 
                         # For the current assignment of k to a term t for word w_{m,n}
                         topicLocks[previousTopicIndex].acquire()
@@ -221,8 +221,7 @@ class LDA():
                             spst.multinomial(1, params).rvs()[0])
 
                         topicLocks[newTopicIndex].acquire()
-                        topicAssociations_z[documentIndex,
-                                            wordIndex] = newTopicIndex
+                        topicAssociations_z[documentIndex][wordIndex] = newTopicIndex
                     # For new assignments of z_{m,n} to the term t for word w_{m,n}
                         documentTopic_count_n_mk[documentIndex,
                                                  newTopicIndex] += 1
