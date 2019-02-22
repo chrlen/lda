@@ -1,0 +1,21 @@
+LDA-Model => constructed
+LDA-Model => fitting to dataset
+LDA => Initialization took:     4.4493s
+LDA => fitting to Dataset
+LDA => Fitting took: 19194.2624s
+LDA => Convergence took:  5000.0000
+
+
+
+Ram at start 11549
+Ram during run
+
+
+
+Dataset => Loading XML File
+Preprocessing text: 100%|████████████████████████████████| 714/714 [00:00<00:00, 8308.64it/s]
+Dataset => Parsing 714 documents took:     1.0238s
+Dataset => Counting Terms
+Counting words: 100%|█████████████████████████████████████| 714/714 [00:01<00:00, 366.15it/s]
+Dataset => Building took:     2.5065s
+Dataset =>        514 documents and      10324 terms
